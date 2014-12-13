@@ -16,7 +16,14 @@ AC_CONFIG_FILES([Makefile
                  tools/Makefile
                 ])
 AC_CHECK_HEADER([zlib.h], [ flag_header_zlib_found=1 ])
+AC_CHECK_LIB([z], [deflate], [ flag_library_zlib_found=1 ])
+
 if test "x$flag_header_zlib_found" = "x" ; then
   AC_ERROR([Must have zlib.h header])
 fi
+
+if test "x$flag_library_zlib_found" = "x" ; then
+  AC_ERROR([Must have zlib library])
+fi
+
 AC_OUTPUT
