@@ -1,0 +1,17 @@
+#!/bin/sh
+set -e
+p=0
+f=0
+for i in test/compile*-test test/run*-test ; do
+  echo -n "$i "
+  if ./$i ; then
+    p=$(expr $p + 1)
+    m=PASSED
+  else
+    f=$(expr $f + 1)
+    m=FAILED
+  fi
+  echo $m
+done
+echo "PASSED: $p    FAILED: $f"
+test "x$f" = "x0"
