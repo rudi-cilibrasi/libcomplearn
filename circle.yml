@@ -1,3 +1,5 @@
 test:
+  pre:
+    - sudo apt-get install automake
   override:
     - ./test/top
