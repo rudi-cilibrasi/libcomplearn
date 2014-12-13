@@ -1,6 +1,7 @@
 machine:
   pre:
-    - sudo apt-get install automake autoconf libtool lib64z1-dev
+    - sudo apt-get install automake autoconf
+    - sudo apt-get install libtool
     - sudo apt-get install lib64z1-dev
 
 test:
