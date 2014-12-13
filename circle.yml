@@ -1,6 +1,6 @@
 machine:
   pre:
-    - sudo apt-get install automake autoconf libtool gcc zlib1g-dev
+    - sudo apt-get install automake autoconf libtool gcc lib64z1-dev
 
 test:
   override:
