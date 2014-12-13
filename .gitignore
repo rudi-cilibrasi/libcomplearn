@@ -1,10 +1,12 @@
 Makefile.in
+autom4te.cache/
 Makefile
 *.o
 aclocal.m4
 config.h
 config.h.in~
 config.log
+config.guess
 config.status
 configure
 .*.swp
@@ -14,3 +16,5 @@ configure
 *.lo
 stamp-h1
 tools/ncd
+libcomplearn*tar.*z*
+libtool

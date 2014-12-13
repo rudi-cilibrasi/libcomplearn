@@ -3,7 +3,6 @@ set -e
 p=0
 f=0
 for i in test/compile*-test test/run*-test ; do
-  echo -n "$i "
   if ./$i ; then
     p=$(expr $p + 1)
     m=PASSED
@@ -11,7 +10,7 @@ for i in test/compile*-test test/run*-test ; do
     f=$(expr $f + 1)
     m=FAILED
   fi
-  echo $m
+  echo "$i $m"
 done
 echo "PASSED: $p    FAILED: $f"
 test "x$f" = "x0"
