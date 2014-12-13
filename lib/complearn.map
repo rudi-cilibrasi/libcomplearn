@@ -1,0 +1,7 @@
+ LIBRARY_1.0 {
+        global:
+            library_func1;
+
+        local:
+            *;
+    };
