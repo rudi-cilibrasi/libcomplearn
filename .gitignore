@@ -2,7 +2,9 @@ Makefile.in
 autom4te.cache/
 Makefile
 *.o
-aclocal.m4
+*.m4
+ltmain.sh
+config.sub
 config.h
 config.h.in~
 config.log

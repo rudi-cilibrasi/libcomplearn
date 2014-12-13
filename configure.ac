@@ -15,4 +15,8 @@ AC_CONFIG_FILES([Makefile
                  libcl/Makefile
                  tools/Makefile
                 ])
+AC_CHECK_HEADER([zlib.h], [ flag_header_zlib_found=1 ])
+if test "x$flag_header_zlib_found" = "x" ; then
+	echo "Must have zlib.h header"
+fi
 AC_OUTPUT
