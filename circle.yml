@@ -1,5 +1,5 @@
 test:
   pre:
-    - sudo apt-get install automake
+    - sudo apt-get install automake autoconf libtool gcc
   override:
     - ./test/top
