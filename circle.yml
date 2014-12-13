@@ -2,6 +2,7 @@ machine:
   pre:
     - sudo apt-get install automake autoconf
     - sudo apt-get install libtool
+    - sudo apt-get remove texlive-base
     - sudo apt-get install lib64z1-dev
 
 test:
