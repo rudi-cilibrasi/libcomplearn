@@ -6,5 +6,5 @@ endif
 
 lib_LTLIBRARIES = libcomplearn.la
 libcomplearn_la_SOURCES = compressor_base.c
-libcomplearn_la_CPPFLAGS = -I$(top_srcdir)/include
+libcomplearn_la_CPPFLAGS = -I$(top_srcdir)/include -Wall
 libcomplearn_la_LDFLAGS = $(VERSION_LDFLAGS)

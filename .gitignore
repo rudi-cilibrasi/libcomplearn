@@ -1,0 +1,16 @@
+Makefile.in
+Makefile
+*.o
+aclocal.m4
+config.h
+config.h.in~
+config.log
+config.status
+configure
+.*.swp
+.deps/
+.libs/
+*.la
+*.lo
+stamp-h1
+tools/ncd

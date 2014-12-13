@@ -1,7 +1,8 @@
 #include "compressor_base.h"
 
-void library_func1(void)
+int library_func1(int a, int b)
 {
+  return 3*a+7*b;
 }
 
 

@@ -8,4 +8,6 @@ struct CLDatum {
   uint64_t length;
 };
 
+int library_func1(int a, int b);
+
 #endif
