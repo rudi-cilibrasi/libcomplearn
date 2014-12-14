@@ -10,6 +10,12 @@ struct CLCompressor makeCLZLib(void);
 
 void cliAddCompressor(struct CLCompressor clc);
 
+struct CLCompressorConfig clNewConfig(void) {
+  struct CLCompressorConfig result;
+  memset(&result, 0, sizeof(result));
+  return result;
+}
+
 void clErrorExit(void) {
 	exit(1);
 }
@@ -53,3 +59,23 @@ void clAddCompressor(struct CLCompressor clc) {
   cliAddCompressor(clc);
 }
 
+struct CLCompressor clLoadCompressor(char *name) {
+  int i;
+	ensureInitted();
+  for (i = 0; i < clgs_CompressorList.count; ++i) {
+    if (strcmp(clgs_CompressorList.compressor_names[i], name) == 0) {
+      return *clgs_CompressorList.compressor[i];
+    }
+  }
+  fprintf(stderr, "Error, unknown compressor %s\n", name);
+  clErrorExit();
+  struct CLCompressor removeWarning;
+  return removeWarning;
+}
+
+double clNCD(double a, double b, double ab) {
+  double min = a, max = a;
+  if (a < b) { max = b; }
+  if (a > b) { min = b; }
+  return (ab - min) / max;
+}

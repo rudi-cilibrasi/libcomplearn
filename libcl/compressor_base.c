@@ -4,8 +4,4 @@
 #include <string.h>
 #include <stdio.h>
 
-int library_func1(struct CLDatum cld)
-{
-  return 17;
-}
 

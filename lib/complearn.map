@@ -4,6 +4,9 @@
             clAddCompressor;
             clInit;
             clListCompressors;
+            clLoadCompressor;
+            clNewConfig;
+            clNCD;
 
         local:
             *;

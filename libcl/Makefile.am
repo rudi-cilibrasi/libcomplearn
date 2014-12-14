@@ -13,7 +13,7 @@ libcomplearn_la_LIBADD = -lz
 include_HEADERS =   include/complearn.h
 
 pubincludedir = $(includedir)/complearn
-pubinclude_HEADERS =   include/complearn.h \
-                       include/complearn/cltop.h \
+pubinclude_HEADERS =                                         \
+                       include/complearn/cltop.h             \
                        include/complearn/compressor_base.h   \
                        include/complearn/libcl.h

@@ -12,6 +12,13 @@ struct CompressorList {
 };
 
 void clAddCompressor(struct CLCompressor clc);
+void clListCompressors(char ***list, int *pcount);
+struct CLCompressor clLoadCompressor(char *name);
+double clCompressedSize(struct CLCompressor compressor,
+                        struct CLDatum cld,
+                        struct CLCompressorConfig *config
+);
+double clNCD(double ca, double cb, double cab);
 
 extern struct CompressorList clgs_CompressorList;
 extern int haveInitted;

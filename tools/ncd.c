@@ -2,6 +2,7 @@
 #include <sys/stat.h>
 #include <string.h>
 #include <stdlib.h>
+#include <math.h>
 
 #include <complearn.h>
 
@@ -37,6 +38,49 @@ struct NCDCommandLineOptions {
 	int isHelpCommand;
 };
 
+uint64_t fileLength(char *filename)
+{
+	struct stat stbuf;
+	int retval;
+	retval = stat(filename, &stbuf);
+	if (retval != 0) {
+		fprintf(stderr, "Error, cannot stat %s\n", filename);
+		exit(1);
+	}
+	if (stbuf.st_mode & S_IFMT == S_IFDIR) {
+    fprintf(stderr, "Error, %s is a directory\n", filename);
+    exit(1);
+  }
+  return stbuf.st_size;
+}
+
+struct CLDatum clDatumCat(struct CLDatum a, struct CLDatum b) {
+  struct CLDatum r;
+  r.length = a.length + b.length;
+  r.data = malloc(r.length);
+  memcpy(r.data, a.data, a.length);
+  memcpy(r.data+a.length, b.data, b.length);
+  return r;
+}
+
+struct CLDatum readFile(char *filename)
+{
+  if (!isFile(filename)) {
+    fprintf(stderr, "Error, %s is not a file\n", filename);
+    exit(1);
+  }
+  struct CLDatum result;
+  result.length = fileLength(filename);
+  result.data = malloc(result.length);
+  FILE *fp = fopen(filename, "rb");
+  int rv = fread(result.data, 1, result.length, fp);
+  if (rv != result.length) {
+    fprintf(stderr, "Error, short read\n");
+    exit(1);
+  }
+  fclose(fp);
+  return result;
+}
 int isFile(char *filename)
 {
 	struct stat stbuf;
@@ -54,18 +98,30 @@ int isDir(char *filename)
 	return !isFile(filename);
 }
 
+void printNCD(double result)
+{
+  if (result == floor(result) && result == ((double) ((int) result))) {
+    printf("%d", (int) result);
+  } else {
+    printf("%f", result);
+  }
+}
+
+void printCompressedSize(double result)
+{
+  if (result == floor(result) && result == ((double) ((int) result))) {
+    printf("%d", (int) result);
+  } else {
+    printf("%f", result);
+  }
+}
+
 int main(int argc, char **argv)
 {
-  struct CLDatum cld;
 	struct NCDCommandLineOptions ncdclo;
-  char *str = "aabaaa";
-  int len = strlen(str);
 	memset(&ncdclo, 0, sizeof(ncdclo));
 	ncdclo.compressor = "zlib";
 	ncdclo.isDefaultCommand = 1;
-  cld.length = len;
-  cld.data = (unsigned char *) str;
-  printf("%d\n",library_func1(cld));
   int filename_list_flag = 0;
   int compressor_list_command_flag = 0;
   int help_command_flag = 0;
@@ -74,6 +130,7 @@ int main(int argc, char **argv)
 	int option_count = 0;
   int index;
   int c;
+  struct CLCompressor comp;
 
   opterr = 0;
   while (1) {
@@ -121,7 +178,29 @@ int main(int argc, char **argv)
         abort ();
       }
 	}
+  clInit();
+  comp = clLoadCompressor(ncdclo.compressor);
+  struct CLCompressorConfig clConfig;
+  clConfig = clNewConfig();
+  if (ncdclo.isListCompressorsCommand) {
+    char **clist;
+    uint32_t count;
+    clListCompressors(&clist, &count);
+    printf("%d compressors:\n", count);
+    int i;
+    for (i = 0; i < count; ++i) {
+      printf("%s\n", clist[i]);
+    }
+    exit(0);
+  }
 	char *firstAxis = NULL, *secondAxis = NULL;
+  if (optind == argc-1 && !ncdclo.isSquare && !ncdclo.isRectangle && ncdclo.isDefaultCommand) {
+    struct CLDatum input = readFile(argv[optind]);
+    double result = comp.compressedSize(input, &clConfig);
+    printCompressedSize(result);
+    printf("\n");
+    exit(0);
+  }
 	if (ncdclo.isSquare) {
 		if (optind >= argc) {
 			fprintf(stderr, "Error, must supply at least one argument.\n");
@@ -152,6 +231,23 @@ int main(int argc, char **argv)
 			fprintf(stderr, "Cannot use filename list without square or rectangle.\n");
 			exit(1);
 		}
+    struct CLDatum a = readFile(firstAxis);
+    struct CLDatum b = readFile(secondAxis);
+    struct CLDatum ab = clDatumCat(a,b);
+    if (ncdclo.isBasic) {
+      double result = comp.compressedSize(ab, &clConfig);
+      printCompressedSize(result);
+      printf("\n");
+      exit(0);
+    } else {
+      double ca = comp.compressedSize(a, &clConfig);
+      double cb = comp.compressedSize(b, &clConfig);
+      double cab = comp.compressedSize(ab, &clConfig);
+      double ncd = clNCD(ca, cb, cab);
+      printNCD(ncd);
+      printf("\n");
+      exit(0);
+    }
 	}
 	printf("%s %s\n", firstAxis, secondAxis);
 
