@@ -8,3 +8,4 @@ lib_LTLIBRARIES = libcomplearn.la
 libcomplearn_la_SOURCES = compressor_base.c compressor_base.h
 libcomplearn_la_CPPFLAGS = -I$(top_srcdir)/include -Wall
 libcomplearn_la_LDFLAGS = $(VERSION_LDFLAGS)
+libcomplearn_la_LIBADD = -lz
