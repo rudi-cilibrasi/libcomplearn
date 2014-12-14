@@ -10,7 +10,7 @@ int main(int argc, char **argv)
   char *str = "aabaaa";
   int len = strlen(str);
   cld.length = len;
-  cld.data = str;
+  cld.data = (unsigned char *) str;
   printf("%d\n",library_func1(cld));
   exit(0);
 }
