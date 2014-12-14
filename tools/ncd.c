@@ -3,6 +3,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <math.h>
+#include <dirent.h>
 
 #include <complearn.h>
 
@@ -24,6 +25,105 @@ static struct option long_options[] = {
 {"help", no_argument, 0, 'h'},
 {0, 0, 0, 0}
 };
+
+struct CLWorkContext {
+	double cSizePoint;
+	uint32_t cSizeCount[2];
+	double *cSizeLine[2];
+	char **labels[2];
+	double **cSizeRect;
+};
+
+int isFile(char *filename);
+
+extern const char *NCDHelpMessage;
+
+void printHelp(FILE *whichFp) {
+	fprintf(whichFp, "%s", NCDHelpMessage);
+}
+
+struct CLDatum readFile(char *filename);
+
+struct NCDDirectoryIterator {
+	char *dirname;
+	DIR *dir;
+};
+
+void ncdiOpenDirectoryIterator(struct NCDDirectoryIterator *i,
+char *dirname) {
+	i->dirname = strdup(dirname);
+	i->dir = opendir(i->dirname);
+}
+
+struct CLDatum ncdiNextDirectoryIterator(struct NCDDirectoryIterator *i,
+int *succeeded) {
+	for (;;) {
+		struct dirent *d = readdir(i->dir);
+		struct CLDatum result;
+		result.length = 0;
+		result.data = NULL;
+		if (d == NULL) {
+			*succeeded = 0;
+			return result;
+		}
+		char *lastPart = d->d_name;
+		char bigFilename[32768];
+		sprintf(bigFilename, "%s/%s", i->dirname, lastPart);
+		if (isFile(bigFilename)) {
+			*succeeded = 1;
+			return readFile(bigFilename);
+		}
+	}
+}
+
+void ncdiCloseDirectoryIterator(struct NCDDirectoryIterator *i) {
+	free(i->dirname);
+	i->dirname = NULL;
+	closedir(i->dir);
+	i->dir = NULL;
+}
+
+struct NCDFilenameListIterator {
+	char *filename;
+	FILE *fp;
+};
+
+#define DIRECTORY_ITERATOR 1
+#define FILENAME_ITERATOR 2
+struct NCDIterator {
+	int iteratorType;
+	struct NCDDirectoryIterator idir;
+	struct NCDFilenameListIterator fdir;
+};
+
+struct CLDatum ncdiNextIterator(struct NCDIterator *i,
+  int *succeeded) {
+	switch (i->iteratorType) {
+		case DIRECTORY_ITERATOR:
+			return ncdiNextDirectoryIterator(&i->idir, succeeded);
+	}
+	struct CLDatum bad;
+	bad.data = NULL;
+	bad.length = 0;
+	return bad;
+}
+
+void ncdiOpenIterator(struct NCDIterator *i, char *dirname, int itype) {
+	switch (itype) {
+		case DIRECTORY_ITERATOR:
+			i->iteratorType = itype;
+			ncdiOpenDirectoryIterator(&i->idir, dirname);
+			return;
+	}
+}
+void ncdiCloseIterator(struct NCDIterator *i) {
+	switch (i->iteratorType) {
+		case DIRECTORY_ITERATOR:
+			ncdiCloseDirectoryIterator(&i->idir);
+			return;
+	}
+}
+
 struct NCDCommandLineOptions {
 	char *compressor;
 	char *compressor_options[256];
@@ -38,7 +138,35 @@ struct NCDCommandLineOptions {
 	int isHelpCommand;
 };
 
-int isFile(char *filename);
+void doBasicBytes(struct CLWorkContext *work,
+                  struct NCDCommandLineOptions *cliopt,
+                  struct CLCompressor comp,
+									struct CLCompressorConfig *clConfig,
+             char *arg1, char *arg2) {
+	struct NCDIterator i1, i2;
+	if (arg1 == NULL) {
+		fprintf(stderr, "Not enough arguments.\n");
+		printHelp(stderr);
+		exit(1);
+	}
+	int arg1isDir = isDir(arg1);
+	if (arg1isDir) {
+		ncdiOpenIterator(&i1, arg1, DIRECTORY_ITERATOR);
+		printf("Would do dir iterator.\n");
+		for (;;) {
+			int succeeded;
+			struct CLDatum result = ncdiNextIterator(&i1, &succeeded);
+			if (succeeded) {
+				printf("%d ", result.length);
+			} else {
+				break;
+			}
+		}
+	}
+	if (arg2 == NULL) {
+		
+	}
+}
 
 uint64_t fileLength(char *filename)
 {
@@ -47,10 +175,12 @@ uint64_t fileLength(char *filename)
 	retval = stat(filename, &stbuf);
 	if (retval != 0) {
 		fprintf(stderr, "Error, cannot stat %s\n", filename);
+		printHelp(stderr);
 		exit(1);
 	}
 	if ((stbuf.st_mode & S_IFMT) == S_IFDIR) {
     fprintf(stderr, "Error, %s is a directory\n", filename);
+		printHelp(stderr);
     exit(1);
   }
   return stbuf.st_size;
@@ -125,13 +255,6 @@ int main(int argc, char **argv)
 	clInit();
 	ncdclo.compressor = "zlib";
 	ncdclo.isDefaultCommand = 1;
-  int filename_list_flag = 0;
-  int compressor_list_command_flag = 0;
-  int help_command_flag = 0;
-  char *cvalue = NULL;
-	char *options[256];
-	int option_count = 0;
-  int index;
   int c;
   struct CLCompressor comp;
 	if (clHasCompressor("xz")) {
@@ -188,6 +311,20 @@ int main(int argc, char **argv)
   comp = clLoadCompressor(ncdclo.compressor);
   struct CLCompressorConfig clConfig;
   clConfig = clNewConfig();
+	int i;
+	for (i = 0; i < ncdclo.optionCount; i += 1) {
+		char *cur = strdup(ncdclo.compressor_options[i]);
+		char *fieldLeft = strtok(cur, "=");
+		if (fieldLeft == NULL) { free(cur); continue; }
+		char *fieldRight = strtok(NULL, "=");
+		if (fieldRight == NULL) { fieldRight = ""; }
+		comp.updateConfiguration(&clConfig, fieldLeft, fieldRight);
+		free(cur);
+	}
+  if (ncdclo.isHelpCommand) {
+		printHelp(stdout);
+		exit(0);
+	}
   if (ncdclo.isListCompressorsCommand) {
     char **clist;
     int count;
@@ -201,31 +338,50 @@ int main(int argc, char **argv)
     exit(0);
   }
 	char *firstAxis = NULL, *secondAxis = NULL;
+	if (optind < argc) {
+		firstAxis = argv[optind];
+	}
+	if (optind < argc-1) {
+		secondAxis = argv[optind+1];
+	}
+	struct CLWorkContext work;
+	if (ncdclo.isBasic) {
+		doBasicBytes(&work, &ncdclo, comp, &clConfig, firstAxis, secondAxis);
+		printf("Did bytes.\n");
+		exit(0);
+	}
   if (optind == argc-1 && !ncdclo.isSquare && !ncdclo.isRectangle && ncdclo.isDefaultCommand) {
-    struct CLDatum input = readFile(argv[optind]);
-    double result = comp.compressedSize(input, &clConfig);
-    printCompressedSize(result);
-    printf("\n");
-    exit(0);
+		if (isFile(argv[optind])) {
+			struct CLDatum input = readFile(argv[optind]);
+			double result = comp.compressedSize(input, &clConfig);
+			printCompressedSize(result);
+			printf("\n");
+			exit(0);
+		} else {
+		}
   }
 	if (ncdclo.isSquare) {
 		if (optind >= argc) {
 			fprintf(stderr, "Error, must supply at least one argument.\n");
+			printHelp(stderr);
 			exit(1);
 		}
 		if (optind < argc-1) {
 			fprintf(stderr, "Error, too many arguments.\n");
+			printHelp(stderr);
 			exit(1);
 		}
 		firstAxis = strdup(argv[optind]);
 		secondAxis = strdup(firstAxis);
 	} else {
 		if (optind >= argc-1) {
-			fprintf(stderr, "Error, must supply at least two arguments.\n");
+			fprintf(stderr, "Error, must supply one or more arguments.\n");
+			printHelp(stderr);
 			exit(1);
 		}
 		if (optind < argc-2) {
 			fprintf(stderr, "Error, too many arguments.\n");
+			printHelp(stderr);
 			exit(1);
 		}
 		firstAxis = strdup(argv[optind]);
@@ -236,6 +392,7 @@ int main(int argc, char **argv)
 	if (!isTwoD) {
 		if (ncdclo.isFilenameList) {
 			fprintf(stderr, "Cannot use filename list without square or rectangle.\n");
+			printHelp(stderr);
 			exit(1);
 		}
     struct CLDatum a = readFile(firstAxis);
