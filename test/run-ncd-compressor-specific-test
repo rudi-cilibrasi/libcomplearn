@@ -1,0 +1,24 @@
+#!/bin/sh
+set -e
+
+cat >.inputfile <<EOF
+This is a great example of a sample input text file that has some redundancies
+suitable for compression.  It is relatively short, but not so short that it
+would not be able to distinguish different compression families in terms of
+performance.  Moreover, different parameter settings for a given compressor
+should also show some differences in typical cases.  Therefore, this is a
+good way to confirm that compressors are making standard choices that are
+platform independent.
+EOF
+
+test -x tools/ncd
+test $(./tools/ncd -b .inputfile) = 380
+test $(./tools/ncd -b .inputfile -c xz -o level=9) = 380
+test $(./tools/ncd -b .inputfile -c xz -o level=1) = 388
+test $(./tools/ncd -b .inputfile -c xz -o level=1 -o extreme=1) = 380
+test $(./tools/ncd -b .inputfile -c zlib -o level=1) = 282
+test $(./tools/ncd -b .inputfile -c zlib -o level=9) = 279
+
+rm .inputfile
+
+exit 0

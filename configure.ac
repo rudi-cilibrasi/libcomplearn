@@ -34,14 +34,19 @@ if test "x$flag_library_zlib_found" = "x" ; then
 fi
 
 AC_PATH_PROG([HAVE_CHECKMK_PATH], [checkmk], [notfound])
+AC_PATH_PROG([HAVE_XZ_PATH], [xz], [notfound])
+
+if test "x$HAVE_XZ_PATH" = "xnotfound" ; then
+  AC_ERROR([Must have xz-utils package installed. Please install xz.])
+fi
 
 AM_CONDITIONAL([HAVE_CHECKMK], [ test ! "x$HAVE_CHECKMK_PATH" = "xnotfound" ])
 
 if test "x$HAVE_CHECKMK_PATH" = "xnotfound" ; then
-	AC_WARN([checkmk not found please install "check" package for unit tests])
+  AC_WARN([checkmk not found please install "check" package for unit tests])
 else
-	CHECK_CFLAGS=$(pkg-config check --cflags)
-	CHECK_LIBS=$(pkg-config check --libs)
+  CHECK_CFLAGS=$(pkg-config check --cflags)
+  CHECK_LIBS=$(pkg-config check --libs)
 fi
 
 COMPLEARN1_LIBS="-lz"
