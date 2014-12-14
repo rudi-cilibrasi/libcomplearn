@@ -2,11 +2,13 @@
 #include <stdio.h>
 #include <string.h>
 #include "include/complearn.h"
+#include "clpopen.h"
 
 struct CompressorList clgs_CompressorList;
 int haveInitted;
 
 struct CLCompressor makeCLZLib(void);
+struct CLCompressor makeCLXZ(const char *xzpath);
 
 void cliAddCompressor(struct CLCompressor clc);
 
@@ -29,7 +31,16 @@ void ensureInitted(void) {
 
 
 void clInit(void) {
+	if (haveInitted != 0) {
+		return;
+	}
 	cliAddCompressor(makeCLZLib());
+	char *r = absolutePathForCommand("xz");
+	if (r == NULL) {
+		r = "(null)";
+	} else {
+		cliAddCompressor(makeCLXZ(r));
+	}
 	haveInitted = 1;
 }
 
@@ -57,6 +68,17 @@ void cliAddCompressor(struct CLCompressor clc) {
 void clAddCompressor(struct CLCompressor clc) {
 	ensureInitted();
   cliAddCompressor(clc);
+}
+
+int clHasCompressor(char *name) {
+  int i;
+	ensureInitted();
+  for (i = 0; i < clgs_CompressorList.count; ++i) {
+    if (strcmp(clgs_CompressorList.compressor_names[i], name) == 0) {
+      return 1;
+    }
+  }
+	return 0;
 }
 
 struct CLCompressor clLoadCompressor(char *name) {

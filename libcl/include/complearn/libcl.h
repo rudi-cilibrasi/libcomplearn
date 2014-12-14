@@ -16,6 +16,8 @@ void clInit(void);
 void clAddCompressor(struct CLCompressor clc);
 void clListCompressors(char ***list, int *pcount);
 struct CLCompressor clLoadCompressor(char *name);
+int clHasCompressor(char *name);
+
 double clCompressedSize(struct CLCompressor compressor,
                         struct CLDatum cld,
                         struct CLCompressorConfig *config

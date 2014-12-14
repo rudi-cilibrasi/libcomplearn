@@ -122,6 +122,7 @@ int main(int argc, char **argv)
 {
 	struct NCDCommandLineOptions ncdclo;
 	memset(&ncdclo, 0, sizeof(ncdclo));
+	clInit();
 	ncdclo.compressor = "zlib";
 	ncdclo.isDefaultCommand = 1;
   int filename_list_flag = 0;
@@ -133,6 +134,9 @@ int main(int argc, char **argv)
   int index;
   int c;
   struct CLCompressor comp;
+	if (clHasCompressor("xz")) {
+		ncdclo.compressor = "xz";
+	}
 
   opterr = 0;
   while (1) {
@@ -193,6 +197,7 @@ int main(int argc, char **argv)
     for (i = 0; i < count; ++i) {
       printf("%s\n", clist[i]);
     }
+		printf("Default compressor: %s\n", ncdclo.compressor);
     exit(0);
   }
 	char *firstAxis = NULL, *secondAxis = NULL;

@@ -3,5 +3,6 @@ clAddCompressor
 clInit
 clListCompressors
 clLoadCompressor
+clHasCompressor
 clNewConfig
 clNCD
