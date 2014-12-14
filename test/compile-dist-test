@@ -15,5 +15,6 @@ cd */
 ./configure
 make
 test -x tools/ncd
-./tools/ncd
+./tools/ncd ./tools/ncd ./tools/ncd
+rm -rf /tmp/t$$
 exit 0

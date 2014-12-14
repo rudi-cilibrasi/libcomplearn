@@ -16,7 +16,12 @@ AC_CONFIG_FILES([Makefile
                  tools/Makefile
                 ])
 AC_CHECK_HEADER([zlib.h], [ flag_header_zlib_found=1 ])
+AC_CHECK_HEADER([getopt.h], [ flag_header_getopt_found=1 ])
 AC_CHECK_LIB([z], [deflate], [ flag_library_zlib_found=1 ])
+
+if test "x$flag_header_getopt_found" = "x" ; then
+  AC_ERROR([Must have getopt.h header])
+fi
 
 if test "x$flag_header_zlib_found" = "x" ; then
   AC_ERROR([Must have zlib.h header])

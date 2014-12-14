@@ -1,5 +1,5 @@
 #!/bin/sh
 set -e
 test -x tools/ncd
-./tools/ncd
+./tools/ncd ./tools/ncd ./tools/ncd
 exit 0
