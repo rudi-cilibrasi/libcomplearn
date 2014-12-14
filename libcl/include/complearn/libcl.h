@@ -11,6 +11,8 @@ struct CompressorList {
 	int count;
 };
 
+
+void clInit(void);
 void clAddCompressor(struct CLCompressor clc);
 void clListCompressors(char ***list, int *pcount);
 struct CLCompressor clLoadCompressor(char *name);

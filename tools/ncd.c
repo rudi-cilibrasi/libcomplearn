@@ -38,6 +38,8 @@ struct NCDCommandLineOptions {
 	int isHelpCommand;
 };
 
+int isFile(char *filename);
+
 uint64_t fileLength(char *filename)
 {
 	struct stat stbuf;
@@ -47,7 +49,7 @@ uint64_t fileLength(char *filename)
 		fprintf(stderr, "Error, cannot stat %s\n", filename);
 		exit(1);
 	}
-	if (stbuf.st_mode & S_IFMT == S_IFDIR) {
+	if ((stbuf.st_mode & S_IFMT) == S_IFDIR) {
     fprintf(stderr, "Error, %s is a directory\n", filename);
     exit(1);
   }
@@ -184,7 +186,7 @@ int main(int argc, char **argv)
   clConfig = clNewConfig();
   if (ncdclo.isListCompressorsCommand) {
     char **clist;
-    uint32_t count;
+    int count;
     clListCompressors(&clist, &count);
     printf("%d compressors:\n", count);
     int i;
