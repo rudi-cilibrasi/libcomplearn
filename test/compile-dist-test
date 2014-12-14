@@ -16,5 +16,8 @@ cd */
 make
 test -x tools/ncd
 ./tools/ncd ./tools/ncd ./tools/ncd
+if test -x test/unitcheck/lctest ; then
+  ./test/unitcheck/lctest
+fi
 rm -rf /tmp/t$$
 exit 0

@@ -1,0 +1,8 @@
+#!/bin/sh
+set -e
+test -x tools/ncd
+if test -x ./test/unitcheck/lctest; then
+           exec ./test/unitcheck/lctest
+else
+           exit 0
+fi

@@ -1,6 +1,7 @@
-Makefile.in
 autom4te.cache/
+test/unitcheck/*.c
 Makefile
+Makefile.in
 *.o
 m4/*.m4
 ltmain.sh
@@ -18,6 +19,7 @@ configure
 *.lo
 stamp-h1
 tools/ncd
+test/unitcheck/lctest
 libcomplearn*tar.*z*
 lib/libcomplearn.pc
 libtool

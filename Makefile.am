@@ -1,5 +1,5 @@
 ACLOCAL_AMFLAGS = -I m4
-SUBDIRS = libcl tools
+SUBDIRS = libcl tools test
 
 EXTRA_DIST = lib/complearn.map lib/complearn.sym lib/libcomplearn.pc.in
 

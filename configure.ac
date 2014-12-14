@@ -14,6 +14,8 @@ RRA_LD_VERSION_SCRIPT
 AC_CONFIG_FILES([Makefile
                  libcl/Makefile
                  tools/Makefile
+                 test/Makefile
+                 test/unitcheck/Makefile
                 ])
 AC_CHECK_HEADER([zlib.h], [ flag_header_zlib_found=1 ])
 AC_CHECK_HEADER([getopt.h], [ flag_header_getopt_found=1 ])
@@ -31,7 +33,21 @@ if test "x$flag_library_zlib_found" = "x" ; then
   AC_ERROR([Must have zlib library])
 fi
 
+AC_PATH_PROG([HAVE_CHECKMK_PATH], [checkmk], [notfound])
+
+AM_CONDITIONAL([HAVE_CHECKMK], [ test ! "x$HAVE_CHECKMK_PATH" = "xnotfound" ])
+
+if test "x$HAVE_CHECKMK_PATH" = "xnotfound" ; then
+	AC_WARN([checkmk not found please install "check" package for unit tests])
+else
+	CHECK_CFLAGS=$(pkg-config check --cflags)
+	CHECK_LIBS=$(pkg-config check --libs)
+fi
+
 COMPLEARN1_LIBS="-lz"
+
 AC_SUBST([COMPLEARN1_LIBS])
+AC_SUBST([CHECK_CFLAGS])
+AC_SUBST([CHECK_LIBS])
 
 AC_OUTPUT
