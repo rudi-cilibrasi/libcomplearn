@@ -31,4 +31,7 @@ if test "x$flag_library_zlib_found" = "x" ; then
   AC_ERROR([Must have zlib library])
 fi
 
+COMPLEARN1_LIBS="-lz"
+AC_SUBST([COMPLEARN1_LIBS])
+
 AC_OUTPUT
