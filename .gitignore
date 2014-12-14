@@ -19,4 +19,5 @@ configure
 stamp-h1
 tools/ncd
 libcomplearn*tar.*z*
+lib/libcomplearn.pc
 libtool

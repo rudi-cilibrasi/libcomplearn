@@ -10,6 +10,10 @@ libcomplearn_la_SOURCES = compressor_base.c cmod_zlib.c \
 libcomplearn_la_CPPFLAGS = -I$(top_srcdir)/include -Wall
 libcomplearn_la_LDFLAGS = $(VERSION_LDFLAGS)
 libcomplearn_la_LIBADD = -lz
-include_HEADERS = include/complearn.h include/complearn/cltop.h \
-                          include/complearn/compressor_base.h   \
-                          include/complearn/libcl.h
+include_HEADERS =   include/complearn.h
+
+pubincludedir = $(includedir)/complearn
+pubinclude_HEADERS =   include/complearn.h \
+                       include/complearn/cltop.h \
+                       include/complearn/compressor_base.h   \
+                       include/complearn/libcl.h
