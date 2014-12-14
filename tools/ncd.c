@@ -7,6 +7,8 @@
 
 #include <complearn.h>
 
+#include "ncdutil.h"
+
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -28,13 +30,15 @@ static struct option long_options[] = {
 
 struct CLWorkContext {
 	double cSizePoint;
-	uint32_t cSizeCount[2];
-	double *cSizeLine[2];
-	char **labels[2];
+	struct DoubleHolder cSizeLine[2];
+	struct StringHolder labels[2];
 	double **cSizeRect;
 };
 
 int isFile(char *filename);
+int isDir(char *filename);
+void printCompressedSize(double result);
+struct CLDatum clDatumCat(struct CLDatum a, struct CLDatum b);
 
 extern const char *NCDHelpMessage;
 
@@ -150,22 +154,47 @@ void doBasicBytes(struct CLWorkContext *work,
 		exit(1);
 	}
 	int arg1isDir = isDir(arg1);
-	if (arg1isDir) {
-		ncdiOpenIterator(&i1, arg1, DIRECTORY_ITERATOR);
-		printf("Would do dir iterator.\n");
-		for (;;) {
-			int succeeded;
-			struct CLDatum result = ncdiNextIterator(&i1, &succeeded);
-			if (succeeded) {
-				printf("%d ", result.length);
-			} else {
-				break;
-			}
-		}
-	}
 	if (arg2 == NULL) {
-		
-	}
+    if (arg1isDir) {
+      ncdiOpenIterator(&i1, arg1, DIRECTORY_ITERATOR);
+      for (;;) {
+        int succeeded;
+        struct CLDatum result = ncdiNextIterator(&i1, &succeeded);
+        if (succeeded) {
+          printf("%lu ", result.length);
+        } else {
+          break;
+        }
+      }
+    } else {
+      if (cliopt->isFilenameList) {
+        printf("TODO\n");
+      } else {
+        struct CLDatum input = readFile(arg1);
+        work->cSizePoint = comp.compressedSize(input, clConfig);
+        printCompressedSize(work->cSizePoint);
+        printf("\n");
+        exit(0);
+      }
+    }
+    fprintf(stderr, "Error, should not be here A1.\n");
+    exit(1);
+  }
+	int arg2isDir = isDir(arg2);
+  if (!cliopt->isFilenameList) {
+    if (!arg1isDir && !arg2isDir) {
+      struct CLDatum input1 = readFile(arg1);
+      struct CLDatum input2 = readFile(arg2);
+      struct CLDatum input = clDatumCat(input1, input2);
+      work->cSizePoint = comp.compressedSize(input, clConfig);
+      printCompressedSize(work->cSizePoint);
+      printf("\n");
+      exit(0);
+    }
+    if (arg1isDir && !arg2isDir) {
+      // TODO
+    }
+  }
 }
 
 uint64_t fileLength(char *filename)
@@ -344,7 +373,15 @@ int main(int argc, char **argv)
 	if (optind < argc-1) {
 		secondAxis = argv[optind+1];
 	}
+  if (optind < argc-2) {
+    fprintf(stderr, "Error: too many arguments\n");
+    exit(1);
+  }
 	struct CLWorkContext work;
+  newDoubleHolder(&work.cSizeLine[0]);
+  newDoubleHolder(&work.cSizeLine[1]);
+  newStringHolder(&work.labels[0]);
+  newStringHolder(&work.labels[1]);
 	if (ncdclo.isBasic) {
 		doBasicBytes(&work, &ncdclo, comp, &clConfig, firstAxis, secondAxis);
 		printf("Did bytes.\n");
