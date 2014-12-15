@@ -6,3 +6,8 @@ clLoadCompressor
 clHasCompressor
 clNewConfig
 clNCD
+clNewDatum
+clCatDatum
+clFreeDatum
+clSizeDatum
+clBytesDatum

@@ -11,12 +11,7 @@ struct CLDatum {
   uint64_t length;
 };
 
-struct CLDatum clNewDatum(unsigned char *data, uint64_t length);
-void clFreeDatum(struct CLDatum cld);
-uint64_t clSizeDatum(struct CLDatum cld);
-unsigned char *clBytesDatum(struct CLDatum cld);
 struct CLCompressorConfig clNewConfig(void);
-double clCompressedSizeDatum(struct CLDatum cld);
 
 struct CLCompressorConfig {
   unsigned char config[1024];

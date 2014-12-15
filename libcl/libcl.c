@@ -101,3 +101,39 @@ double clNCD(double a, double b, double ab) {
   if (a > b) { min = b; }
   return (ab - min) / max;
 }
+
+void clNewDatum(struct CLDatum *pcld, const char *data, uint64_t length) {
+  if (length == 0) {
+    pcld->data = NULL;
+  } else {
+    pcld->data = malloc(length);
+    memcpy(pcld->data, data, length);
+  }
+  pcld->length = length;
+}
+
+struct CLDatum clCatDatum(struct CLDatum a, struct CLDatum b) {
+  struct CLDatum r;
+  r.length = a.length + b.length;
+  r.data = malloc(r.length);
+  memcpy(r.data, a.data, a.length);
+  memcpy(r.data+a.length, b.data, b.length);
+  return r;
+}
+
+void clFreeDatum(struct CLDatum *cld) {
+  if (cld->data) {
+    free(cld->data);
+  }
+  cld->data = NULL;
+  cld->length = 0;
+}
+
+uint64_t clSizeDatum(struct CLDatum cld) {
+  return cld.length;
+}
+
+unsigned char *clBytesDatum(struct CLDatum cld) {
+  return cld.data;
+}
+
