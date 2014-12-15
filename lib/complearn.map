@@ -13,7 +13,6 @@
             clFreeDatum;
             clSizeDatum;
             clBytesDatum;
-            clReadFile;
 
         local:
             *;

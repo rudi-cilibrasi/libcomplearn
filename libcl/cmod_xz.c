@@ -3,7 +3,7 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "include/complearn/compressor_base.h"
+#include "include/complearn.h"
 
 static char *s_xzpath;
 

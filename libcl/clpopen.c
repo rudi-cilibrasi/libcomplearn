@@ -3,8 +3,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include "include/complearn/cltop.h"
-#include "clpopen.h"
+#include "include/complearn.h"
 
 char *absolutePathForCommand(const char *cmd) {
 	int cmdlen = strlen(cmd);
@@ -27,14 +26,19 @@ char *absolutePathForCommand(const char *cmd) {
 int64_t runCommandCount(struct CLDatum inp, const char *cmd) {
 	char tmpbuf[256];
 	strcpy(tmpbuf, "/tmp/complearn.XXXXXX");
-	mktemp(tmpbuf);
-	FILE *fp = fopen(tmpbuf, "wb");
-	fwrite(inp.data, 1, inp.length, fp);
-	fclose(fp);
+	int fdOut = mkstemp(tmpbuf);
+  if (inp.length > 0) {
+    int wroteLen = write(fdOut, inp.data, inp.length);
+    if (wroteLen != inp.length) {
+      fprintf(stderr, "Error: short write\n");
+      exit(1);
+    }
+  }
+	close(fdOut);
 	int cmdlen = strlen(cmd);
 	char *goodcmd = malloc(cmdlen + 128);
 	sprintf(goodcmd, "%s <%s", cmd, tmpbuf);
-	fp = popen(goodcmd, "r");
+	FILE *fp = popen(goodcmd, "r");
 	char buf[8192];
 	int rv;
 	uint64_t count = 0;

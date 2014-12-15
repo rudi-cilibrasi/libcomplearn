@@ -8,5 +8,5 @@ Description: CompLearn data compression machine learning library
 URL: http://complearn.org/
 Version: @PACKAGE_VERSION@
 Cflags: -I${includedir}
-Libs: -L${libdir} -lcomplearn
+Libs: -L${libdir} -lcomplearn -lclutil
 Libs.private: @COMPLEARN1_LIBS@

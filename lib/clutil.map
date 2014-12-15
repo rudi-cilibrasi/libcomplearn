@@ -19,6 +19,8 @@
             isFile;
             ncdiOpenIterator;
             ncdiNextIterator;
+            clReadFile;
+            clFileLength;
 
 
         local:

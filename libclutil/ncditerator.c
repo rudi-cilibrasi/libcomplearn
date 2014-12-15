@@ -17,6 +17,9 @@ void ncdiOpenIterator(struct NCDIterator *i, char *name,
 struct CLRichDatum ncdiNextIterator(struct NCDIterator *i,
                                 enum NCDIteratorStepType s,
                                          int *succeeded) {
+  struct CLRichDatum result;
+  // TODO
+  return result;
 }
 
 #if 0

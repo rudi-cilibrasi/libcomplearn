@@ -9,7 +9,7 @@ lctest_LDADD =../../libcl/libcomplearn.la ../../libclutil/libclutil.la -lm @CHEC
 
 lcutiltest_SOURCES=basic_clutil.c
 lcutiltest_CPPFLAGS=-I../../libcl/include -Wall @CHECK_CFLAGS@ -I../../libclutil -g
-lcutiltest_LDADD =../../libcl/libcomplearn.la ../../libclutil/libclutil.la -lm ../../libcl/libcomplearn.la @CHECK_LIBS@
+lcutiltest_LDADD =../../libcl/libcomplearn.la ../../libclutil/libclutil.la -lm @CHECK_LIBS@
 
 .ts.c:
 	checkmk $< >$@

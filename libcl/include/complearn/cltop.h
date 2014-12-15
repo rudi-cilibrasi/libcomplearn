@@ -2,6 +2,7 @@
 #define __CLTOP_H
 
 #include "libcl.h"
+#include "clpopen.h"
 
 #endif
 
