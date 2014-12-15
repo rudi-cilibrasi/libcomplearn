@@ -4,6 +4,9 @@
 #include "stringholder.h"
 #include "doubleholder.h"
 #include "charholder.h"
+#include "ncditerator.h"
+#include "directoryiterator.h"
+#include "filehelper.h"
 
 #endif
 

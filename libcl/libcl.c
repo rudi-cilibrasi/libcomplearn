@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <sys/stat.h>
 #include <stdio.h>
 #include <string.h>
 #include "include/complearn.h"
@@ -135,5 +136,36 @@ uint64_t clSizeDatum(struct CLDatum cld) {
 
 unsigned char *clBytesDatum(struct CLDatum cld) {
   return cld.data;
+}
+
+static uint64_t fileLength(char *filename)
+{
+	struct stat stbuf;
+	int retval;
+	retval = stat(filename, &stbuf);
+	if (retval != 0) {
+		fprintf(stderr, "Error, cannot stat %s\n", filename);
+		exit(1);
+	}
+	if ((stbuf.st_mode & S_IFMT) == S_IFDIR) {
+    fprintf(stderr, "Error, %s is a directory\n", filename);
+    exit(1);
+  }
+  return stbuf.st_size;
+}
+
+struct CLDatum clReadFile(char *filename)
+{
+  struct CLDatum result;
+  result.length = fileLength(filename);
+  result.data = malloc(result.length);
+  FILE *fp = fopen(filename, "rb");
+  int rv = fread(result.data, 1, result.length, fp);
+  if (rv != result.length) {
+    fprintf(stderr, "Error, short read\n");
+    exit(1);
+  }
+  fclose(fp);
+  return result;
 }
 

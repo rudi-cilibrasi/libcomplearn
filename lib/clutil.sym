@@ -13,3 +13,7 @@ freeCharHolder
 pushCharHolder
 getCharHolderData
 getCharHolderCount
+isDir
+isFile
+ncdiOpenIterator
+ncdiNextIterator

@@ -36,8 +36,6 @@ struct CLWorkContext {
 	double **cSizeRect;
 };
 
-int isFile(char *filename);
-int isDir(char *filename);
 void printCompressedSize(double result);
 struct CLDatum clDatumCat(struct CLDatum a, struct CLDatum b);
 
@@ -47,47 +45,6 @@ void printHelp(FILE *whichFp) {
 	fprintf(whichFp, "%s", NCDHelpMessage);
 }
 
-struct CLDatum readFile(char *filename);
-
-struct NCDDirectoryIterator {
-	char *dirname;
-	DIR *dir;
-};
-
-void ncdiOpenDirectoryIterator(struct NCDDirectoryIterator *i,
-char *dirname) {
-	i->dirname = strdup(dirname);
-	i->dir = opendir(i->dirname);
-}
-
-struct CLDatum ncdiNextDirectoryIterator(struct NCDDirectoryIterator *i,
-int *succeeded) {
-	for (;;) {
-		struct dirent *d = readdir(i->dir);
-		struct CLDatum result;
-		result.length = 0;
-		result.data = NULL;
-		if (d == NULL) {
-			*succeeded = 0;
-			return result;
-		}
-		char *lastPart = d->d_name;
-		char bigFilename[32768];
-		sprintf(bigFilename, "%s/%s", i->dirname, lastPart);
-		if (isFile(bigFilename)) {
-			*succeeded = 1;
-			return readFile(bigFilename);
-		}
-	}
-}
-
-void ncdiCloseDirectoryIterator(struct NCDDirectoryIterator *i) {
-	free(i->dirname);
-	i->dirname = NULL;
-	closedir(i->dir);
-	i->dir = NULL;
-}
-
 struct NCDFilenameListIterator {
 	char *filename;
 	FILE *fp;
@@ -95,40 +52,6 @@ struct NCDFilenameListIterator {
 
 #define DIRECTORY_ITERATOR 1
 #define FILENAME_ITERATOR 2
-struct NCDIterator {
-	int iteratorType;
-	struct NCDDirectoryIterator idir;
-	struct NCDFilenameListIterator fdir;
-};
-
-struct CLDatum ncdiNextIterator(struct NCDIterator *i,
-  int *succeeded) {
-	switch (i->iteratorType) {
-		case DIRECTORY_ITERATOR:
-			return ncdiNextDirectoryIterator(&i->idir, succeeded);
-	}
-	struct CLDatum bad;
-	bad.data = NULL;
-	bad.length = 0;
-	return bad;
-}
-
-void ncdiOpenIterator(struct NCDIterator *i, char *dirname, int itype) {
-	switch (itype) {
-		case DIRECTORY_ITERATOR:
-			i->iteratorType = itype;
-			ncdiOpenDirectoryIterator(&i->idir, dirname);
-			return;
-	}
-}
-void ncdiCloseIterator(struct NCDIterator *i) {
-	switch (i->iteratorType) {
-		case DIRECTORY_ITERATOR:
-			ncdiCloseDirectoryIterator(&i->idir);
-			return;
-	}
-}
-
 struct NCDCommandLineOptions {
 	char *compressor;
 	char *compressor_options[256];
@@ -160,9 +83,9 @@ void doBasicBytes(struct CLWorkContext *work,
       ncdiOpenIterator(&i1, arg1, DIRECTORY_ITERATOR);
       for (;;) {
         int succeeded;
-        struct CLDatum result = ncdiNextIterator(&i1, &succeeded);
+        struct CLRichDatum result = ncdiNextIterator(&i1, 0, &succeeded);
         if (succeeded) {
-          printf("%lu ", result.length);
+          printf("%lu ", result.datum.length);
         } else {
           break;
         }
@@ -171,7 +94,7 @@ void doBasicBytes(struct CLWorkContext *work,
       if (cliopt->isFilenameList) {
         printf("TODO\n");
       } else {
-        struct CLDatum input = readFile(arg1);
+        struct CLDatum input = clReadFile(arg1);
         work->cSizePoint = comp.compressedSize(input, clConfig);
         printCompressedSize(work->cSizePoint);
         printf("\n");
@@ -184,8 +107,8 @@ void doBasicBytes(struct CLWorkContext *work,
 	int arg2isDir = isDir(arg2);
   if (!cliopt->isFilenameList) {
     if (!arg1isDir && !arg2isDir) {
-      struct CLDatum input1 = readFile(arg1);
-      struct CLDatum input2 = readFile(arg2);
+      struct CLDatum input1 = clReadFile(arg1);
+      struct CLDatum input2 = clReadFile(arg2);
       struct CLDatum input = clDatumCat(input1, input2);
       work->cSizePoint = comp.compressedSize(input, clConfig);
       printCompressedSize(work->cSizePoint);
@@ -198,24 +121,6 @@ void doBasicBytes(struct CLWorkContext *work,
   }
 }
 
-uint64_t fileLength(char *filename)
-{
-	struct stat stbuf;
-	int retval;
-	retval = stat(filename, &stbuf);
-	if (retval != 0) {
-		fprintf(stderr, "Error, cannot stat %s\n", filename);
-		printHelp(stderr);
-		exit(1);
-	}
-	if ((stbuf.st_mode & S_IFMT) == S_IFDIR) {
-    fprintf(stderr, "Error, %s is a directory\n", filename);
-		printHelp(stderr);
-    exit(1);
-  }
-  return stbuf.st_size;
-}
-
 struct CLDatum clDatumCat(struct CLDatum a, struct CLDatum b) {
   struct CLDatum r;
   r.length = a.length + b.length;
@@ -223,41 +128,6 @@ struct CLDatum clDatumCat(struct CLDatum a, struct CLDatum b) {
   memcpy(r.data, a.data, a.length);
   memcpy(r.data+a.length, b.data, b.length);
   return r;
-}
-
-struct CLDatum readFile(char *filename)
-{
-  if (!isFile(filename)) {
-    fprintf(stderr, "Error, %s is not a file\n", filename);
-    exit(1);
-  }
-  struct CLDatum result;
-  result.length = fileLength(filename);
-  result.data = malloc(result.length);
-  FILE *fp = fopen(filename, "rb");
-  int rv = fread(result.data, 1, result.length, fp);
-  if (rv != result.length) {
-    fprintf(stderr, "Error, short read\n");
-    exit(1);
-  }
-  fclose(fp);
-  return result;
-}
-int isFile(char *filename)
-{
-	struct stat stbuf;
-	int retval;
-	retval = stat(filename, &stbuf);
-	if (retval != 0) {
-		fprintf(stderr, "Error, cannot stat %s\n", filename);
-		exit(1);
-	}
-	return (stbuf.st_mode & S_IFMT) != S_IFDIR;
-}
-
-int isDir(char *filename)
-{
-	return !isFile(filename);
 }
 
 void printNCD(double result)
@@ -390,7 +260,7 @@ int main(int argc, char **argv)
 	}
   if (optind == argc-1 && !ncdclo.isSquare && !ncdclo.isRectangle && ncdclo.isDefaultCommand) {
 		if (isFile(argv[optind])) {
-			struct CLDatum input = readFile(argv[optind]);
+			struct CLDatum input = clReadFile(argv[optind]);
 			double result = comp.compressedSize(input, &clConfig);
 			printCompressedSize(result);
 			printf("\n");
@@ -425,7 +295,6 @@ int main(int argc, char **argv)
 		firstAxis = strdup(argv[optind]);
 		secondAxis = strdup(argv[optind+1]);
 	}
-	int needsSingleD = 0;
 	int isTwoD = ncdclo.isSquare || ncdclo.isRectangle;
 	if (!isTwoD) {
 		if (ncdclo.isFilenameList) {
@@ -433,8 +302,8 @@ int main(int argc, char **argv)
 			printHelp(stderr);
 			exit(1);
 		}
-    struct CLDatum a = readFile(firstAxis);
-    struct CLDatum b = readFile(secondAxis);
+    struct CLDatum a = clReadFile(firstAxis);
+    struct CLDatum b = clReadFile(secondAxis);
     struct CLDatum ab = clDatumCat(a,b);
     if (ncdclo.isBasic) {
       double result = comp.compressedSize(ab, &clConfig);

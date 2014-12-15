@@ -29,6 +29,7 @@ void clFreeDatum(struct CLDatum *cld);
 struct CLDatum clCatDatum(struct CLDatum a, struct CLDatum b);
 uint64_t clSizeDatum(struct CLDatum cld);
 unsigned char *clBytesDatum(struct CLDatum cld);
+struct CLDatum clReadFile(char *filename);
 
 extern struct CompressorList clgs_CompressorList;
 extern int haveInitted;

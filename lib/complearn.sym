@@ -11,3 +11,4 @@ clCatDatum
 clFreeDatum
 clSizeDatum
 clBytesDatum
+clReadFile
