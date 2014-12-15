@@ -1,7 +1,8 @@
 ACLOCAL_AMFLAGS = -I m4
-SUBDIRS = libcl tools test
+SUBDIRS = libcl libclutil tools test
 
-EXTRA_DIST = lib/complearn.map lib/complearn.sym lib/libcomplearn.pc.in
+EXTRA_DIST = lib/complearn.map lib/complearn.sym lib/clutil.map lib/clutil.sym \
+             lib/libcomplearn.pc.in
 
 pkgconfigdir = $(libdir)/pkgconfig
 nodist_pkgconfig_DATA = lib/libcomplearn.pc

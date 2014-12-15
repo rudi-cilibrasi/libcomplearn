@@ -20,6 +20,7 @@ configure
 stamp-h1
 tools/ncd
 test/unitcheck/lctest
+test/unitcheck/lcutiltest
 libcomplearn*tar.*z*
 lib/libcomplearn.pc
 libtool

@@ -13,6 +13,7 @@ AC_PROG_CC
 RRA_LD_VERSION_SCRIPT
 AC_CONFIG_FILES([Makefile
                  libcl/Makefile
+                 libclutil/Makefile
                  tools/Makefile
                  test/Makefile
                  test/unitcheck/Makefile

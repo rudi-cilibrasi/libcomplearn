@@ -1,14 +1,20 @@
 
 if HAVE_CHECKMK
 
-bin_PROGRAMS=lctest
+bin_PROGRAMS=lctest lcutiltest
+
 lctest_SOURCES=basic_complete.c
-lctest_CPPFLAGS=-I../../libcl/include -Wall @CHECK_CFLAGS@
-lctest_LDADD =../../libcl/libcomplearn.la -lm @CHECK_LIBS@
+lctest_CPPFLAGS=-I../../libcl/include -Wall @CHECK_CFLAGS@ -I../../libclutil -g
+lctest_LDADD =../../libcl/libcomplearn.la ../../libclutil/libclutil.la -lm @CHECK_LIBS@
+
+lcutiltest_SOURCES=basic_stringholder.c
+lcutiltest_CPPFLAGS=-I../../libcl/include -Wall @CHECK_CFLAGS@ -I../../libclutil -g
+lcutiltest_LDADD =../../libcl/libcomplearn.la ../../libclutil/libclutil.la -lm @CHECK_LIBS@
 
 .ts.c:
 	checkmk $< >$@
 
 endif
 
-EXTRA_DIST=basic_complete.ts
+EXTRA_DIST=basic_complete.ts \
+  basic_stringholder.ts

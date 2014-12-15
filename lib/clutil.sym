@@ -1,0 +1,5 @@
+newStringHolder
+pushStringHolder
+freeStringHolder
+getStringHolderData
+getStringHolderCount

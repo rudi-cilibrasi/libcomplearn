@@ -1,0 +1,11 @@
+ LIBRARY_1.0 {
+        global:
+            newStringHolder;
+            pushStringHolder;
+            freeStringHolder;
+            getStringHolderData;
+            getStringHolderCount;
+
+        local:
+            *;
+    };
