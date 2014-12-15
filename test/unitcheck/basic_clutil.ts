@@ -3,6 +3,21 @@
 #include <stdio.h>
 #include <clutil.h>
 
+#test charholder_test
+	struct CharHolder ch;
+  newDoubleHolder(&ch);
+  ck_assert(0 == getCharHolderCount(&ch));
+  freeCharHolder(&ch);
+  newCharHolder(&ch);
+  ck_assert(0 == getCharHolderCount(&ch));
+  pushCharHolder(&ch, 15);
+  ck_assert(1 == getCharHolderCount(&ch));
+  ck_assert(15 == getCharHolderData(&ch)[0]);
+  pushCharHolder(&ch, 11);
+  ck_assert(15 == getCharHolderData(&ch)[0]);
+  ck_assert(2 == getCharHolderCount(&ch));
+  ck_assert(11 == getCharHolderData(&ch)[1]);
+
 #test doubleholder_test
 	struct DoubleHolder dh;
   newDoubleHolder(&dh);

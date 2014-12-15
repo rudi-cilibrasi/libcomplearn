@@ -8,3 +8,8 @@ freeDoubleHolder
 pushDoubleHolder
 getDoubleHolderData
 getDoubleHolderCount
+newCharHolder
+freeCharHolder
+pushCharHolder
+getCharHolderData
+getCharHolderCount

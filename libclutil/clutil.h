@@ -3,6 +3,7 @@
 
 #include "stringholder.h"
 #include "doubleholder.h"
+#include "charholder.h"
 
 #endif
 
