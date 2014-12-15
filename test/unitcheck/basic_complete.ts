@@ -3,10 +3,15 @@
 #include <stdio.h>
 #include <complearn.h>
 
-#test the_test
-	int nc;
-	const char msg[] = "\n\n    Hello, CompLearn!\n";
-  clInit();
-
-	nc = printf("%s", msg);
-	ck_assert(nc == (sizeof(msg) - 1)); /* for terminating NUL. */
+#test cldatum_test
+	struct CLDatum clda, cldb, cldc;
+  clNewDatum(&clda, "comp", 4);
+  clNewDatum(&cldb, "learn", 6);
+  cldc = clCatDatum(clda, cldb);
+  clFreeDatum(&clda);
+  clFreeDatum(&cldb);
+  ck_assert(clSizeDatum(cldc) == 10);
+  ck_assert(strcmp((char *) clBytesDatum(cldc), "complearn") == 0);
+  clFreeDatum(&cldc);
+  ck_assert(clBytesDatum(cldc) == NULL);
+  ck_assert(clSizeDatum(cldc) == 0);
