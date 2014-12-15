@@ -5,6 +5,6 @@ else
 endif
 
 lib_LTLIBRARIES = libclutil.la
-libclutil_la_SOURCES = stringholder.c stringholder.h
+libclutil_la_SOURCES = stringholder.c stringholder.h clutil.h
 libclutil_la_CPPFLAGS = -I$(top_srcdir)/include -Wall
 libclutil_la_LDFLAGS = $(VERSION_LDFLAGS)

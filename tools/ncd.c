@@ -6,6 +6,7 @@
 #include <dirent.h>
 
 #include <complearn.h>
+#include <stringholder.h>
 
 #include "ncdutil.h"
 
