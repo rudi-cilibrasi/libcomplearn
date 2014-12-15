@@ -3,3 +3,8 @@ pushStringHolder
 freeStringHolder
 getStringHolderData
 getStringHolderCount
+newDoubleHolder
+freeDoubleHolder
+pushDoubleHolder
+getDoubleHolderData
+getDoubleHolderCount
