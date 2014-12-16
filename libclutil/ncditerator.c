@@ -5,21 +5,58 @@
 void ncdiOpenIterator(struct NCDIterator *i, char *name,
                       enum NCDIteratorType type) {
   switch (type) {
+    case NCDIteratorTypeSingleFile:
+      ncdiOpenSingleFileIterator(&i->sdir, name);
+      break;
     case NCDIteratorTypeDirectory:
       ncdiOpenDirectoryIterator(&i->idir, name);
+      break;
+    case NCDIteratorTypeFilenameList:
+      ncdiOpenFilenameListIterator(&i->fdir, name);
       break;
     default:
       fprintf(stderr, "Unrecognized iterator type: %d\n", type);
       exit(1);
   }
+  i->iteratorType = type;
 }
 
 struct CLRichDatum ncdiNextIterator(struct NCDIterator *i,
                                 enum NCDIteratorStepType s,
                                          int *succeeded) {
   struct CLRichDatum result;
-  // TODO
+  switch (i->iteratorType) {
+    case NCDIteratorTypeDirectory:
+      result = ncdiNextDirectoryIterator(&i->idir, s, succeeded);
+      break;
+    case NCDIteratorTypeSingleFile:
+      result = ncdiNextSingleFileIterator(&i->sdir, s, succeeded);
+      break;
+    case NCDIteratorTypeFilenameList:
+      result = ncdiNextFilenameListIterator(&i->fdir, s, succeeded);
+      break;
+    default:
+      fprintf(stderr, "Unrecognized iterator type: %d\n", i->iteratorType);
+      exit(1);
+  }
   return result;
+}
+
+void ncdiCloseIterator(struct NCDIterator *i) {
+  switch (i->iteratorType) {
+    case NCDIteratorTypeSingleFile:
+      ncdiCloseSingleFileIterator(&i->sdir);
+      return;
+    case NCDIteratorTypeFilenameList:
+      ncdiCloseFilenameListIterator(&i->fdir);
+      return;
+    case NCDIteratorTypeDirectory:
+      ncdiCloseDirectoryIterator(&i->idir);
+      return;
+    default:
+      fprintf(stderr, "Unrecognized iterator type: %d\n", i->iteratorType);
+      exit(1);
+  }
 }
 
 #if 0

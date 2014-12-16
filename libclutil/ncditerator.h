@@ -5,11 +5,14 @@
 
 #include "ncditeratortype.h"
 #include "directoryiterator.h"
+#include "singlefileiterator.h"
+#include "filenamelistiterator.h"
 
 struct NCDIterator {
   enum NCDIteratorType iteratorType;
   struct NCDDirectoryIterator idir;
-// struct NCDFilenameListIterator fdir;
+  struct NCDSingleFileIterator sdir;
+  struct NCDFilenameListIterator fdir;
 };
 
 struct CLRichDatum {

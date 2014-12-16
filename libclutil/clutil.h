@@ -6,6 +6,8 @@
 #include "charholder.h"
 #include "ncditerator.h"
 #include "directoryiterator.h"
+#include "filenamelistiterator.h"
+#include "singlefileiterator.h"
 #include "filehelper.h"
 
 #endif

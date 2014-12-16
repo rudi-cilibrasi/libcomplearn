@@ -17,5 +17,6 @@ isDir
 isFile
 ncdiOpenIterator
 ncdiNextIterator
+ncdiCloseIterator
 clReadFile
 clFileLength

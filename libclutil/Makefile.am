@@ -11,6 +11,8 @@ libclutil_la_SOURCES = stringholder.c stringholder.h clutil.h \
                         ncditerator.c  ncditerator.h          \
                         ncditeratortype.h                     \
                    directoryiterator.c directoryiterator.h    \
+                   singlefileiterator.c singlefileiterator.h  \
+                   filenamelistiterator.c filenamelistiterator.h  \
                       filehelper.c     filehelper.h
 
 libclutil_la_CPPFLAGS = -I$(top_srcdir)/libcl/include -Wall

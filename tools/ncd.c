@@ -37,6 +37,7 @@ struct CLWorkContext {
 };
 
 void printCompressedSize(double result);
+void printNCD(double result);
 struct CLDatum clDatumCat(struct CLDatum a, struct CLDatum b);
 
 extern const char *NCDHelpMessage;
@@ -45,13 +46,6 @@ void printHelp(FILE *whichFp) {
   fprintf(whichFp, "%s", NCDHelpMessage);
 }
 
-struct NCDFilenameListIterator {
-  char *filename;
-  FILE *fp;
-};
-
-#define DIRECTORY_ITERATOR 1
-#define FILENAME_ITERATOR 2
 struct NCDCommandLineOptions {
   char *compressor;
   char *compressor_options[256];
@@ -66,60 +60,150 @@ struct NCDCommandLineOptions {
   int isHelpCommand;
 };
 
+void convertStringToIterator(struct NCDIterator *i, char *arg, struct NCDCommandLineOptions *ncdclo) {
+  int argIsDir = isDir(arg);
+  ncdiOpenIterator(i, arg, argIsDir ? NCDIteratorTypeDirectory :
+    ncdclo->isFilenameList ?
+       NCDIteratorTypeFilenameList :
+       NCDIteratorTypeSingleFile  );
+}
+void doNCDMatrix(struct CLWorkContext *work,
+                  struct NCDCommandLineOptions *cliopt,
+                  struct CLCompressor comp,
+                  struct CLCompressorConfig *clConfig,
+             char *arg1, char *arg2) {
+  struct NCDIterator i1;
+  struct NCDIterator i2;
+  if (arg1 == NULL) {
+    fprintf(stderr, "Not enough arguments.\n");
+    printHelp(stderr);
+    exit(1);
+  }
+  if (cliopt->isSquare && arg2 == NULL) {
+    arg2 = strdup(arg1);
+  }
+  if (arg2 == NULL) {
+    fprintf(stderr, "Not enough arguments.\n");
+    printHelp(stderr);
+    exit(1);
+  }
+  convertStringToIterator(&i1, arg1, cliopt);
+  convertStringToIterator(&i2, arg2, cliopt);
+  for (;;) {
+    int succeeded;
+    struct CLRichDatum result = ncdiNextIterator(&i1, 0, &succeeded);
+    if (succeeded) {
+      pushDoubleHolder(&work->cSizeLine[0], comp.compressedSize(result.datum, clConfig));
+      clFreeDatum(&result.datum);
+    } else {
+      break;
+    }
+  }
+  ncdiCloseIterator(&i1);
+  for (;;) {
+    int succeeded;
+    struct CLRichDatum result = ncdiNextIterator(&i2, 0, &succeeded);
+    if (succeeded) {
+      pushDoubleHolder(&work->cSizeLine[1], comp.compressedSize(result.datum, clConfig));
+      clFreeDatum(&result.datum);
+    } else {
+      break;
+    }
+  }
+  ncdiCloseIterator(&i2);
+  convertStringToIterator(&i1, arg1, cliopt);
+  int x = 0;
+  int succeeded;
+  for (;;) {
+    struct CLRichDatum d1 = ncdiNextIterator(&i1, NCDNoLabels, &succeeded);
+    if (!succeeded) {
+      break;
+    }
+    convertStringToIterator(&i2, arg2, cliopt);
+    int y = 0;
+    for (;;) {
+      struct CLRichDatum d2 = ncdiNextIterator(&i2, NCDNoLabels, &succeeded);
+      if (!succeeded) {
+        clFreeDatum(&d2.datum);
+        break;
+      }
+      struct CLDatum input = clDatumCat(d1.datum, d2.datum);
+      work->cSizePoint = comp.compressedSize(input, clConfig);
+      clFreeDatum(&input);
+      double cab = work->cSizePoint;
+      double ca = getDoubleHolderData(&work->cSizeLine[0])[x];
+      double cb = getDoubleHolderData(&work->cSizeLine[1])[y];
+      double ncd = clNCD(ca, cb, cab);
+      printNCD(ncd);
+      printf(" ");
+      clFreeDatum(&d2.datum);
+      y += 1;
+    }
+    printf("\n");
+    ncdiCloseIterator(&i2);
+    clFreeDatum(&d1.datum);
+    x += 1;
+  }
+  ncdiCloseIterator(&i1);
+  exit(0);
+}
+
 void doBasicBytes(struct CLWorkContext *work,
                   struct NCDCommandLineOptions *cliopt,
                   struct CLCompressor comp,
                   struct CLCompressorConfig *clConfig,
              char *arg1, char *arg2) {
   struct NCDIterator i1;
-//  struct NCDIterator i2;
+  struct NCDIterator i2;
   if (arg1 == NULL) {
     fprintf(stderr, "Not enough arguments.\n");
     printHelp(stderr);
     exit(1);
   }
-  int arg1isDir = isDir(arg1);
   if (arg2 == NULL) {
-    if (arg1isDir) {
-      ncdiOpenIterator(&i1, arg1, DIRECTORY_ITERATOR);
-      for (;;) {
-        int succeeded;
-        struct CLRichDatum result = ncdiNextIterator(&i1, 0, &succeeded);
-        if (succeeded) {
-          printf("%lu ", result.datum.length);
-        } else {
-          break;
-        }
-      }
-    } else {
-      if (cliopt->isFilenameList) {
-        printf("TODO\n");
-      } else {
-        struct CLDatum input = clReadFile(arg1);
-        work->cSizePoint = comp.compressedSize(input, clConfig);
+    convertStringToIterator(&i1, arg1, cliopt);
+    for (;;) {
+      int succeeded;
+      struct CLRichDatum result = ncdiNextIterator(&i1, 0, &succeeded);
+      if (succeeded) {
+        work->cSizePoint = comp.compressedSize(result.datum, clConfig);
+        clFreeDatum(&result.datum);
         printCompressedSize(work->cSizePoint);
-        printf("\n");
-        exit(0);
+        printf(" ");
+      } else {
+        break;
       }
     }
-    fprintf(stderr, "Error, should not be here A1.\n");
-    exit(1);
+    printf("\n");
+    exit(0);
   }
-  int arg2isDir = isDir(arg2);
-  if (!cliopt->isFilenameList) {
-    if (!arg1isDir && !arg2isDir) {
-      struct CLDatum input1 = clReadFile(arg1);
-      struct CLDatum input2 = clReadFile(arg2);
-      struct CLDatum input = clDatumCat(input1, input2);
+  convertStringToIterator(&i1, arg1, cliopt);
+  int succeeded;
+  for (;;) {
+    struct CLRichDatum d1 = ncdiNextIterator(&i1, NCDNoLabels, &succeeded);
+    if (!succeeded) {
+      break;
+    }
+    convertStringToIterator(&i2, arg2, cliopt);
+    for (;;) {
+      struct CLRichDatum d2 = ncdiNextIterator(&i2, NCDNoLabels, &succeeded);
+      if (!succeeded) {
+        clFreeDatum(&d2.datum);
+        break;
+      }
+      struct CLDatum input = clDatumCat(d1.datum, d2.datum);
       work->cSizePoint = comp.compressedSize(input, clConfig);
+      clFreeDatum(&input);
       printCompressedSize(work->cSizePoint);
-      printf("\n");
-      exit(0);
+      printf(" ");
+      clFreeDatum(&d2.datum);
     }
-    if (arg1isDir && !arg2isDir) {
-      // TODO
-    }
+    printf("\n");
+    ncdiCloseIterator(&i2);
+    clFreeDatum(&d1.datum);
   }
+  ncdiCloseIterator(&i1);
+  exit(0);
 }
 
 struct CLDatum clDatumCat(struct CLDatum a, struct CLDatum b) {
@@ -131,8 +215,7 @@ struct CLDatum clDatumCat(struct CLDatum a, struct CLDatum b) {
   return r;
 }
 
-void printNCD(double result)
-{
+void printNCD(double result) {
   if (result == floor(result) && result == ((double) ((int) result))) {
     printf("%d", (int) result);
   } else {
@@ -256,72 +339,10 @@ int main(int argc, char **argv)
   newStringHolder(&work.labels[1]);
   if (ncdclo.isBasic) {
     doBasicBytes(&work, &ncdclo, comp, &clConfig, firstAxis, secondAxis);
-    printf("Did bytes.\n");
+    exit(0);
+  } else {
+    doNCDMatrix(&work, &ncdclo, comp, &clConfig, firstAxis, secondAxis);
     exit(0);
   }
-  if (optind == argc-1 && !ncdclo.isSquare && !ncdclo.isRectangle && ncdclo.isDefaultCommand) {
-    if (isFile(argv[optind])) {
-      struct CLDatum input = clReadFile(argv[optind]);
-      double result = comp.compressedSize(input, &clConfig);
-      printCompressedSize(result);
-      printf("\n");
-      exit(0);
-    } else {
-    }
-  }
-  if (ncdclo.isSquare) {
-    if (optind >= argc) {
-      fprintf(stderr, "Error, must supply at least one argument.\n");
-      printHelp(stderr);
-      exit(1);
-    }
-    if (optind < argc-1) {
-      fprintf(stderr, "Error, too many arguments.\n");
-      printHelp(stderr);
-      exit(1);
-    }
-    firstAxis = strdup(argv[optind]);
-    secondAxis = strdup(firstAxis);
-  } else {
-    if (optind >= argc-1) {
-      fprintf(stderr, "Error, must supply one or more arguments.\n");
-      printHelp(stderr);
-      exit(1);
-    }
-    if (optind < argc-2) {
-      fprintf(stderr, "Error, too many arguments.\n");
-      printHelp(stderr);
-      exit(1);
-    }
-    firstAxis = strdup(argv[optind]);
-    secondAxis = strdup(argv[optind+1]);
-  }
-  int isTwoD = ncdclo.isSquare || ncdclo.isRectangle;
-  if (!isTwoD) {
-    if (ncdclo.isFilenameList) {
-      fprintf(stderr, "Cannot use filename list without square or rectangle.\n");
-      printHelp(stderr);
-      exit(1);
-    }
-    struct CLDatum a = clReadFile(firstAxis);
-    struct CLDatum b = clReadFile(secondAxis);
-    struct CLDatum ab = clDatumCat(a,b);
-    if (ncdclo.isBasic) {
-      double result = comp.compressedSize(ab, &clConfig);
-      printCompressedSize(result);
-      printf("\n");
-      exit(0);
-    } else {
-      double ca = comp.compressedSize(a, &clConfig);
-      double cb = comp.compressedSize(b, &clConfig);
-      double cab = comp.compressedSize(ab, &clConfig);
-      double ncd = clNCD(ca, cb, cab);
-      printNCD(ncd);
-      printf("\n");
-      exit(0);
-    }
-  }
-  printf("%s %s\n", firstAxis, secondAxis);
-
   exit(0);
 }
