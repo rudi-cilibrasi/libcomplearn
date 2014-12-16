@@ -26,7 +26,7 @@ static char *icl_xz_version(void) {
 }
 
 static int64_t icl_xz_windowSize(void) {
-  return 32768;
+  return -1;
 }
 
 struct XZConfiguration {

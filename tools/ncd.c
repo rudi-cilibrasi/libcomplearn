@@ -22,7 +22,6 @@ static struct option long_options[] = {
 {"option", required_argument, 0, 'o'},
 {"square", no_argument, 0, 's'},
 {"basic", no_argument, 0, 'b'},
-{"rectangle", no_argument, 0, 'r'},
 {"list-compressors", no_argument, 0, 'l'},
 {"filename-list", no_argument, 0, 'f'},
 {"help", no_argument, 0, 'h'},
@@ -52,7 +51,6 @@ struct NCDCommandLineOptions {
   int optionCount;
   int isSquare;
   int isBasic;
-  int isRectangle;
   int isFilenameList;
   int isDefaultCommand;
   int isInfoCommand;
@@ -279,13 +277,8 @@ int main(int argc, char **argv)
       case 'o':
         ncdclo.compressor_options[ncdclo.optionCount++] = strdup(optarg);
         break;
-      case 'r':
-        ncdclo.isRectangle = 1;
-        ncdclo.isSquare = 0;
-        break;
       case 's':
         ncdclo.isSquare = 1;
-        ncdclo.isRectangle = 0;
         break;
       default:
         abort ();
@@ -304,6 +297,13 @@ int main(int argc, char **argv)
     if (fieldRight == NULL) { fieldRight = ""; }
     comp.updateConfiguration(&clConfig, fieldLeft, fieldRight);
     free(cur);
+  }
+  if (ncdclo.isInfoCommand) {
+    printf("Compressor: %s\n", comp.name());
+    printf("Description: %s\n", comp.description());
+    printf("Parameters: %s\n", comp.parameters());
+    printf("WindowSize: %lld\n", (long long) comp.windowSize());
+    exit(0);
   }
   if (ncdclo.isHelpCommand) {
     printHelp(stdout);

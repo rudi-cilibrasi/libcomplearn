@@ -1,0 +1,71 @@
+.TH NCD 1
+.SH NAME
+ncd \- compute the Normalized Compression Distance
+.SH SYNOPSIS
+.B ncd
+.B [ -bfhilrs ] [-c compressor ] [-o key=value ] [arg1] [arg2]
+.SH DESCRIPTION
+.PP
+The Normalized Compression Distance between two objects is defined as
+.TP
+.B "    NCD(a,b) = (C(a,b) - min(C(a),C(b))) / max(C(a),C(b))"
+.TP
+where 
+.TP 8
+.B C(a,b)
+means "the compressed size of the concatenation of a and b"
+.TP
+.B C(a)
+means "the compressed size of a"
+.TP
+.B C(b)
+means "the compressed size of b"
+  
+.PP
+.B ncd
+will print a non-negative number (typically, but not always, 0 <= x < 1.1)
+representing how different the two objects are.  Smaller numbers represent more
+similar files.  The largest number is somewhere near 1.  It is not exactly 1
+due to imperfections in compression techniques or other irregularities
+underlying compressor, but for most standard compression algorithms you are
+unlikely to see a number above 1.1 in any case.
+
+.PP
+At least two compressors are available by default: zlib and xz.  These
+may be selected with the \fB-c\fR option.  Use \fBncd -l\fR for more details.
+
+.SH ENUMERATION MODES
+.TP
+\fB\-f\fR, \fB\-\-filename-list\fR=\fIFILE\fR
+select filename list mode, where a file lists filenames one per line.
+.TP
+.SH OPTIONS
+.TP
+\fB\-c\fR, \fB\-\-compressor\fR=\fIcompressor\fR
+use and set compressor to use
+.TP
+\fB\-l\fR, \fB\-\-list\-compressors\fR
+list available compressor names.
+.TP
+\fB\-b\fR, \fB\-\-basic\fR
+instead of calculating NCD, print just the compressed size of a single \fIFILE\fR, \fISTRING\fR, or \fIDIR\fR or the total compressed size of a concatenated pair when using two arguments.
+.TP
+\fB\-o\fR, \fB\-\-option\fR=\fIkey=value\fR
+specify compressor option such as \fB-o level=4\fR to specify compression
+level 4 for zlib or xz compressors.
+.TP
+\fB\-i\fR, \fB\-\-info\fR
+Print detailed info about the default compressor or another one specified using \fB\-c\fR
+.TP
+\fB\-s\fR, \fB\-\-square\fR
+Assume a square so that only one argument need be specified. It will be used twice.
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+show help options and exit
+.SH FILES
+
+.SH ENVIRONMENT
+.TP
+.SH DIAGNOSTICS
+none
+.SH "SEE ALSO"

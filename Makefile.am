@@ -3,6 +3,7 @@ SUBDIRS = libcl libclutil tools test
 
 EXTRA_DIST = lib/complearn.map lib/complearn.sym lib/clutil.map lib/clutil.sym \
              lib/libcomplearn.pc.in
+dist_man_MANS = man/ncd.1
 
 pkgconfigdir = $(libdir)/pkgconfig
 nodist_pkgconfig_DATA = lib/libcomplearn.pc
