@@ -5,7 +5,7 @@
 
 #test charholder_test
 	struct CharHolder ch;
-  newDoubleHolder(&ch);
+  newCharHolder(&ch);
   ck_assert(0 == getCharHolderCount(&ch));
   freeCharHolder(&ch);
   newCharHolder(&ch);
