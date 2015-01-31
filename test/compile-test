@@ -1,12 +1,18 @@
 #!/bin/sh
 set -e
+
 if test ! -f Makefile.in ; then
   ./autogen
 fi
+
 if test ! -f Makefile ; then
   ./configure
 fi
-if test ! -x src/ncd ; then
+
+if test ! -x tools/ncd ; then
   make
 fi
+
+test -x tools/ncd
+
 exit 0
