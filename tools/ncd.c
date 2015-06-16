@@ -24,6 +24,7 @@ static struct option long_options[] = {
 {"basic", no_argument, 0, 'b'},
 {"list-compressors", no_argument, 0, 'l'},
 {"filename-list", no_argument, 0, 'f'},
+{"labels", no_argument, 0, 0 },
 {"help", no_argument, 0, 'h'},
 {0, 0, 0, 0}
 };
@@ -56,7 +57,16 @@ struct NCDCommandLineOptions {
   int isInfoCommand;
   int isListCompressorsCommand;
   int isHelpCommand;
+  int hasLabels;
+  enum NCDIteratorStepType stepType;
 };
+
+void makeLabelModeEnum(struct NCDCommandLineOptions *ncdclo) {
+  ncdclo->stepType = NCDNoLabels;
+  if (ncdclo->hasLabels) {
+    ncdclo->stepType = NCDDataAndLabels;
+  }
+}
 
 void convertStringToIterator(struct NCDIterator *i, char *arg, struct NCDCommandLineOptions *ncdclo) {
   int argIsDir = isDir(arg);
@@ -85,6 +95,7 @@ void doNCDMatrix(struct CLWorkContext *work,
     printHelp(stderr);
     exit(1);
   }
+  makeLabelModeEnum(cliopt);
   convertStringToIterator(&i1, arg1, cliopt);
   convertStringToIterator(&i2, arg2, cliopt);
   for (;;) {
@@ -98,29 +109,41 @@ void doNCDMatrix(struct CLWorkContext *work,
     }
   }
   ncdiCloseIterator(&i1);
+  if (cliopt->hasLabels) {
+    printf("%9s", "");
+  }
   for (;;) {
     int succeeded;
     struct CLRichDatum result = ncdiNextIterator(&i2, 0, &succeeded);
     if (succeeded) {
+      if (cliopt->hasLabels) {
+        printf("%10s ", result.label_utf8);
+      }
       pushDoubleHolder(&work->cSizeLine[1], comp.compressedSize(result.datum, clConfig));
       clFreeDatum(&result.datum);
     } else {
       break;
     }
   }
+  if (cliopt->hasLabels) {
+    printf("\n");
+  }
   ncdiCloseIterator(&i2);
   convertStringToIterator(&i1, arg1, cliopt);
   int x = 0;
   int succeeded;
   for (;;) {
-    struct CLRichDatum d1 = ncdiNextIterator(&i1, NCDNoLabels, &succeeded);
+    struct CLRichDatum d1 = ncdiNextIterator(&i1, cliopt->stepType, &succeeded);
     if (!succeeded) {
       break;
     }
     convertStringToIterator(&i2, arg2, cliopt);
     int y = 0;
+    if (cliopt->hasLabels) {
+      printf(" %9s", d1.label_utf8);
+    }
     for (;;) {
-      struct CLRichDatum d2 = ncdiNextIterator(&i2, NCDNoLabels, &succeeded);
+      struct CLRichDatum d2 = ncdiNextIterator(&i2, cliopt->stepType, &succeeded);
       if (!succeeded) {
         clFreeDatum(&d2.datum);
         break;
@@ -158,16 +181,20 @@ void doBasicBytes(struct CLWorkContext *work,
     printHelp(stderr);
     exit(1);
   }
+  makeLabelModeEnum(cliopt);
   if (arg2 == NULL) {
     convertStringToIterator(&i1, arg1, cliopt);
     for (;;) {
       int succeeded;
-      struct CLRichDatum result = ncdiNextIterator(&i1, 0, &succeeded);
+      struct CLRichDatum result = ncdiNextIterator(&i1, cliopt->stepType, &succeeded);
       if (succeeded) {
+        if (cliopt->hasLabels) {
+          printf(" %9s", result.label_utf8);
+        }
         work->cSizePoint = comp.compressedSize(result.datum, clConfig);
         clFreeDatum(&result.datum);
         printCompressedSize(work->cSizePoint);
-        printf(" ");
+        printf("\n");
       } else {
         break;
       }
@@ -175,16 +202,34 @@ void doBasicBytes(struct CLWorkContext *work,
     printf("\n");
     exit(0);
   }
+  if (cliopt->hasLabels) {
+    printf("%9s ", "");
+    convertStringToIterator(&i2, arg1, cliopt);
+    for (;;) {
+      int succeeded;
+      struct CLRichDatum result = ncdiNextIterator(&i2, NCDNoData, &succeeded);
+      if (succeeded) {
+          printf("%9s ", result.label_utf8);
+      } else {
+        break;
+      }
+    }
+    printf("\n");
+    ncdiCloseIterator(&i2);
+  }
   convertStringToIterator(&i1, arg1, cliopt);
   int succeeded;
   for (;;) {
-    struct CLRichDatum d1 = ncdiNextIterator(&i1, NCDNoLabels, &succeeded);
+    struct CLRichDatum d1 = ncdiNextIterator(&i1, cliopt->stepType, &succeeded);
     if (!succeeded) {
       break;
     }
     convertStringToIterator(&i2, arg2, cliopt);
+    if (cliopt->hasLabels) {
+      printf("%9s ", d1.label_utf8);
+    }
     for (;;) {
-      struct CLRichDatum d2 = ncdiNextIterator(&i2, NCDNoLabels, &succeeded);
+      struct CLRichDatum d2 = ncdiNextIterator(&i2, cliopt->stepType, &succeeded);
       if (!succeeded) {
         clFreeDatum(&d2.datum);
         break;
@@ -193,7 +238,6 @@ void doBasicBytes(struct CLWorkContext *work,
       work->cSizePoint = comp.compressedSize(input, clConfig);
       clFreeDatum(&input);
       printCompressedSize(work->cSizePoint);
-      printf(" ");
       clFreeDatum(&d2.datum);
     }
     printf("\n");
@@ -214,20 +258,25 @@ struct CLDatum clDatumCat(struct CLDatum a, struct CLDatum b) {
 }
 
 void printNCD(double result) {
+  char buf[80];
+
   if (result == floor(result) && result == ((double) ((int) result))) {
-    printf("%d", (int) result);
+    sprintf(buf, "%8d", (int) result);
   } else {
-    printf("%f", result);
+    sprintf(buf, "%8f", result);
   }
+  printf("%9s ", buf);
 }
 
 void printCompressedSize(double result)
 {
+  char buf[80];
   if (result == floor(result) && result == ((double) ((int) result))) {
-    printf("%d", (int) result);
+    sprintf(buf, "%8d", (int) result);
   } else {
-    printf("%f", result);
+    sprintf(buf, "%8f", result);
   }
+  printf("%9s ", buf);
 }
 
 int main(int argc, char **argv)
@@ -253,6 +302,11 @@ int main(int argc, char **argv)
 
     switch (c)
       {
+      case 0:
+        if (strcmp(long_options[option_index].name, "labels") == 0) {
+          ncdclo.hasLabels = 1;
+        }
+        break;
       case 'b':
         ncdclo.isBasic = 1;
         break;
