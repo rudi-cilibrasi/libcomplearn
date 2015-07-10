@@ -13,3 +13,13 @@ Normalized Compression Distance Research List
 https://groups.google.com/forum/#!forum/ncd-research-list
 
 NCD is used in a wide variety of fields.
+
+# QUICKSTART
+
+    ./autogen
+    ./configure
+    make
+    sudo make install
+
+Then link with -lcomplearn in your linker line to use this library.
+
