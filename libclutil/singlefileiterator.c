@@ -14,10 +14,14 @@ struct CLRichDatum ncdiNextSingleFileIterator(struct NCDSingleFileIterator *i,
                                 enum NCDIteratorStepType s,
                                 int *succeeded) {
   struct CLRichDatum result;
-  result.datum.data = NULL;
-  result.datum.length = 0;
+  memset(&result, 0, sizeof(result));
   if (i->filename) {
-    result.datum = clReadFile(i->filename);
+    if (s == NCDDataAndLabels || s == NCDNoLabels) {
+      result.datum = clReadFile(i->filename);
+    }
+    if (s == NCDDataAndLabels || s == NCDNoData) {
+      result.label_utf8 = strdup(i->filename);
+    }
     free(i->filename);
     i->filename = NULL;
     *succeeded = 1;

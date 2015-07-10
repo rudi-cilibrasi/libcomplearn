@@ -14,15 +14,19 @@ struct CLRichDatum ncdiNextFilenameListIterator(struct NCDFilenameListIterator *
                                 enum NCDIteratorStepType s,
 int *succeeded) {
   struct CLRichDatum result;
-  result.datum.data = NULL;
-  result.datum.length = 0;
+  memset(&result, 0, sizeof(result));
   char buf[65536]; // TODO: fix with charholder.h
   memset(buf, 0, sizeof(buf));
   if (i->fp) {
     char *resultLine = fgets(buf, sizeof(buf)-1, i->fp);
     if (resultLine) {
       strtok(resultLine, "\r\n");
-      result.datum = clReadFile(resultLine);
+      if (s == NCDDataAndLabels || s == NCDNoLabels) {
+        result.datum = clReadFile(resultLine);
+      }
+      if (s == NCDDataAndLabels || s == NCDNoData) {
+        result.label_utf8 = strdup(resultLine);
+      }
       *succeeded = 1;
     } else {
       *succeeded = 0;

@@ -17,8 +17,7 @@ int *succeeded) {
 	for (;;) {
 		struct dirent *d = readdir(i->dir);
 		struct CLRichDatum result;
-		result.datum.length = 0;
-		result.datum.data = NULL;
+    memset(&result, 0, sizeof(result));
 		if (d == NULL) {
 			*succeeded = 0;
 			return result;
@@ -26,12 +25,19 @@ int *succeeded) {
 		char *lastPart = d->d_name;
 		char bigFilename[32768];
 		sprintf(bigFilename, "%s/%s", i->dirname, lastPart);
-		if (isFile(bigFilename)) {
-			*succeeded = 1;
-			result.datum = clReadFile(bigFilename);
-			return result;
-		}
-	}
+    if (s == NCDDataAndLabels || s == NCDNoData) {
+      result.label_utf8 = strdup(lastPart);
+    }
+    if (s == NCDDataAndLabels || s == NCDNoLabels) {
+      if (isFile(bigFilename)) {
+        *succeeded = 1;
+        result.datum = clReadFile(bigFilename);
+        return result;
+      } else {
+        *succeeded = 0;
+      }
+    }
+  }
 }
 
 void ncdiCloseDirectoryIterator(struct NCDDirectoryIterator *i) {

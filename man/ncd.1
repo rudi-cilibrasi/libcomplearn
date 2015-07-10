@@ -3,7 +3,7 @@
 ncd \- compute the Normalized Compression Distance
 .SH SYNOPSIS
 .B ncd
-.B [ -bfhilrs ] [-c compressor ] [-o key=value ] [arg1] [arg2]
+.B [ -bfhilrs ] [-c compressor ] [ --labels ] [-o key=value ] [arg1] [arg2]
 .SH DESCRIPTION
 .PP
 The Normalized Compression Distance between two objects is defined as
@@ -46,6 +46,9 @@ use and set compressor to use
 .TP
 \fB\-l\fR, \fB\-\-list\-compressors\fR
 list available compressor names.
+.TP
+\fB\-\-labels\fR
+add labels to output.
 .TP
 \fB\-b\fR, \fB\-\-basic\fR
 instead of calculating NCD, print just the compressed size of a single \fIFILE\fR, \fISTRING\fR, or \fIDIR\fR or the total compressed size of a concatenated pair when using two arguments.
