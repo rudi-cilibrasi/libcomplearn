@@ -44,7 +44,7 @@ fi
 AM_CONDITIONAL([HAVE_CHECKMK], [ test ! "x$HAVE_CHECKMK_PATH" = "xnotfound" ])
 
 if test "x$HAVE_CHECKMK_PATH" = "xnotfound" ; then
-  AC_WARN([checkmk not found please install "check" package for unit tests])
+  AC_ERROR([checkmk not found please install "check" package for unit tests])
 else
   CHECK_CFLAGS=$(pkg-config check --cflags)
   CHECK_LIBS=$(pkg-config check --libs)
